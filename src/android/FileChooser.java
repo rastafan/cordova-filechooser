@@ -19,6 +19,7 @@ public class FileChooser extends CordovaPlugin {
     private static final int PICK_FILE_REQUEST = 1;
 
     public static final String MIME = "mime";
+    public static final String ExtraMIME ="extraMIME";
 
     CallbackContext callback;
 
@@ -36,11 +37,15 @@ public class FileChooser extends CordovaPlugin {
 
     public void chooseFile(JSONObject filter, CallbackContext callbackContext) {
         String uri_filter = filter.has(MIME) ? filter.optString(MIME) : "*/*";
-
+        boolean hasExtraMIME = filter.has(ExtraMIME) ? true : false;
         // type and title should be configurable
 
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType(uri_filter);
+        if (hasExtraMIME) {
+            String [] mimeTypes=filter.optString(ExtraMIME).split(",");
+            intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+        }
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
 
