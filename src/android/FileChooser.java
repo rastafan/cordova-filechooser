@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
+import android.provider.OpenableColumns;
+import android.database.Cursor;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
@@ -40,7 +42,8 @@ public class FileChooser extends CordovaPlugin {
         boolean hasExtraMIME = filter.has(ExtraMIME) ? true : false;
         // type and title should be configurable
 
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        //Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.setType(uri_filter);
         if (hasExtraMIME) {
             String [] mimeTypes=filter.optString(ExtraMIME).split(",");
@@ -70,7 +73,48 @@ public class FileChooser extends CordovaPlugin {
                 if (uri != null) {
 
                     Log.w(TAG, uri.toString());
-                    callback.success(uri.toString());
+                    
+                    //Recovering original file name
+                    String fileName = null;
+                    if (uri.getScheme().equals("content")) {
+                        Cursor cursor = cordova.getActivity().getContentResolver().query(uri, null, null, null, null);
+                        try {
+                            if (cursor != null && cursor.moveToFirst()) {
+                                fileName = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+                            }
+                        } finally {
+                            cursor.close();
+                        }
+                    }
+
+                    if (fileName == null) {
+                        fileName = uri.getPath();
+                        int cut = fileName.lastIndexOf('/');
+                        if (cut != -1) {
+                            fileName = fileName.substring(cut + 1);
+                        }
+                    }
+
+                    Log.w(TAG, "FILE NAME - " + fileName);
+
+                    //Extracting file mime-type (since more than one can be passed with extraMIME)
+                    String mimeType = cordova.getActivity().getContentResolver().getType(uri);
+                    
+                    //Response JSON
+                    JSONObject response = new JSONObject();
+
+                    try {
+                        response.put("uri",uri.toString());
+                        response.put("name",fileName);
+                        response.put("mime",mimeType);
+                    } catch (JSONException e) {
+                        callback.error("Error: " + e.getMessage());
+                        return;
+                    }
+
+                    Log.w(TAG, "FINAL RESPONSE - " + response.toString());
+
+                    callback.success(response);
 
                 } else {
 
