@@ -25,7 +25,7 @@ fileChooser.open(successCallback. failureCallback); // without mime filter
   {"mime": "*/*", "extraMIME" : "application/pdf,image/png,image/jpeg,video/mp4,video/mpg"}
 ```
 
-The success callback gets the uri of the selected file
+The success callback gets an object with uri, name and mime properties of the selected file
 
 ```javascript
 fileChooser.open(function(data) {
