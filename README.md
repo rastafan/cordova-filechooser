@@ -28,8 +28,10 @@ fileChooser.open(successCallback. failureCallback); // without mime filter
 The success callback gets the uri of the selected file
 
 ```javascript
-fileChooser.open(function(uri) {
-  alert(uri);
+fileChooser.open(function(data) {
+  alert(data.uri);
+  alert(data.name);
+  alert(data.mime);
 });
 ```
 
